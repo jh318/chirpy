@@ -8,6 +8,7 @@ bin/
 *.test
 *.out
 out
+*.png:Zone.Identifier
 
 # Go module stuff that can be regenerated
 /vendor/
