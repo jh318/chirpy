@@ -16,10 +16,10 @@ func main() {
 	appHandler := http.StripPrefix("/app", http.FileServer(http.Dir(".")))
 	wrapped := apiCfg.middlewareMetricsInc(appHandler)
 	mux.Handle("/assets/", http.StripPrefix("/assets/",http.FileServer(http.Dir("./assets"))))
-	mux.HandleFunc("/healthz", healthzHandler)
 	mux.Handle("/app/", wrapped)
-	mux.HandleFunc("/metrics", apiCfg.handleMetrics)
-	mux.HandleFunc("/reset", apiCfg.handleReset)
+	mux.HandleFunc("GET /healthz", healthzHandler)
+	mux.HandleFunc("GET /metrics", apiCfg.handleMetrics)
+	mux.HandleFunc("POST /reset", apiCfg.handleReset)
 	server := http.Server{}
 	server.Handler = mux
 	server.Addr = ":8080"
