@@ -15,11 +15,10 @@ func main() {
 	apiCfg := apiConfig{}
 	appHandler := http.StripPrefix("/app", http.FileServer(http.Dir(".")))
 	wrapped := apiCfg.middlewareMetricsInc(appHandler)
-	mux.Handle("/assets/", http.StripPrefix("/assets/",http.FileServer(http.Dir("./assets"))))
 	mux.Handle("/app/", wrapped)
-	mux.HandleFunc("GET /healthz", healthzHandler)
-	mux.HandleFunc("GET /metrics", apiCfg.handleMetrics)
-	mux.HandleFunc("POST /reset", apiCfg.handleReset)
+	mux.HandleFunc("GET /admin/healthz", healthzHandler)
+	mux.HandleFunc("GET /admin/metrics", apiCfg.handleMetrics)
+	mux.HandleFunc("POST /admin/reset", apiCfg.handleReset)
 	server := http.Server{}
 	server.Handler = mux
 	server.Addr = ":8080"
@@ -42,9 +41,15 @@ func (cfg *apiConfig) middlewareMetricsInc(next http.Handler) http.Handler {
 
 func (cfg *apiConfig) handleMetrics(w http.ResponseWriter, r *http.Request) {
 	hits := cfg.fileserverHits.Load()
-	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+	w.Header().Set("Content-Type", "text/html")
 	w.WriteHeader(http.StatusOK)
-	body := fmt.Sprintf("Hits: %d", hits)
+	body := fmt.Sprintf(
+		`<html>
+  			<body>
+    			<h1>Welcome, Chirpy Admin</h1>
+    			<p>Chirpy has been visited %d times!</p>
+  			</body>
+		</html>`, hits)
 	w.Write([]byte(body))
 }
 
