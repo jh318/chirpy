@@ -1,10 +1,11 @@
 package main
 
 import (
-	"net/http"
-	"sync/atomic"
-	"fmt"
 	"encoding/json"
+	"fmt"
+	"net/http"
+	"strings"
+	"sync/atomic"
 )
 
 type apiConfig struct {
@@ -67,7 +68,7 @@ func (cfg *apiConfig) handleValidateChirp(w http.ResponseWriter, r *http.Request
 		Body string `json:"body"`
 	}
 	type successParameters struct {
-		Valid bool `json:"valid"`
+		CleanedBody string `json:"cleaned_body"`
 	}
 	type errorParameters struct {
 		Error string `json:"error"`
@@ -92,9 +93,26 @@ func (cfg *apiConfig) handleValidateChirp(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	p := successParameters{Valid: true}
+	cleaned := cleanProfanity(params.Body)
+	p := successParameters{CleanedBody: cleaned}
 	data, _ := json.Marshal(p)
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	w.Write(data)
+}
+
+func cleanProfanity(body string) string {
+	badWords := []string{"kerfuffle", "sharbert", "fornax"}
+	words := strings.Split(body, " ")
+	for i, word := range words {
+		lower := strings.ToLower(word)
+		for _, bad := range badWords {
+			if lower == bad {
+				words[i] = "****"
+				break
+			}
+		}
+	}
+
+	return strings.Join(words, " ")
 }
