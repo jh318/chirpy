@@ -9,6 +9,8 @@ bin/
 *.out
 out
 *.png:Zone.Identifier
+.env
+chirpy
 
 # Go module stuff that can be regenerated
 /vendor/
