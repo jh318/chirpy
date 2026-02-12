@@ -2,7 +2,6 @@ package main
 
 import (
 	"database/sql"
-	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -45,7 +44,8 @@ func main() {
 	mux.HandleFunc("GET /api/healthz", healthzHandler)
 	mux.HandleFunc("GET /admin/metrics", apiCfg.handleMetrics)
 	mux.HandleFunc("POST /admin/reset", apiCfg.handlerReset)
-	mux.HandleFunc("POST /api/validate_chirp", apiCfg.handleValidateChirp)
+	//mux.HandleFunc("POST /api/validate_chirp", apiCfg.handlerChirpsCreate)
+	mux.HandleFunc("POST /api/chirps", apiCfg.handlerChirpsCreate)
 	mux.HandleFunc("POST /api/users", apiCfg.handlerUsersCreate)
 	server := http.Server{}
 	server.Handler = mux
@@ -81,43 +81,43 @@ func (cfg *apiConfig) handleMetrics(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(body))
 }
 
-func (cfg *apiConfig) handleValidateChirp(w http.ResponseWriter, r *http.Request) {
-	type parameters struct {
-		Body string `json:"body"`
-	}
-	type successParameters struct {
-		CleanedBody string `json:"cleaned_body"`
-	}
-	type errorParameters struct {
-		Error string `json:"error"`
-	}
+// func (cfg *apiConfig) handleValidateChirp(w http.ResponseWriter, r *http.Request) {
+// 	type parameters struct {
+// 		Body string `json:"body"`
+// 	}
+// 	type successParameters struct {
+// 		CleanedBody string `json:"cleaned_body"`
+// 	}
+// 	type errorParameters struct {
+// 		Error string `json:"error"`
+// 	}
 
-	decoder := json.NewDecoder(r.Body)
-	params := parameters{}
-	err := decoder.Decode(&params)
-	if err != nil {
-		errResp := errorParameters{Error: "Something went wrong"}
-		data, _ := json.Marshal(errResp)
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(500)
-		w.Write(data)
-		return
-	} else if len(params.Body) > 140 {
-		errResp := errorParameters{Error: "Chirp is too long"}
-		data, _ := json.Marshal(errResp)
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write(data)
-		return
-	}
+// 	decoder := json.NewDecoder(r.Body)
+// 	params := parameters{}
+// 	err := decoder.Decode(&params)
+// 	if err != nil {
+// 		errResp := errorParameters{Error: "Something went wrong"}
+// 		data, _ := json.Marshal(errResp)
+// 		w.Header().Set("Content-Type", "application/json")
+// 		w.WriteHeader(500)
+// 		w.Write(data)
+// 		return
+// 	} else if len(params.Body) > 140 {
+// 		errResp := errorParameters{Error: "Chirp is too long"}
+// 		data, _ := json.Marshal(errResp)
+// 		w.Header().Set("Content-Type", "application/json")
+// 		w.WriteHeader(http.StatusBadRequest)
+// 		w.Write(data)
+// 		return
+// 	}
 
-	cleaned := cleanProfanity(params.Body)
-	p := successParameters{CleanedBody: cleaned}
-	data, _ := json.Marshal(p)
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	w.Write(data)
-}
+// 	cleaned := cleanProfanity(params.Body)
+// 	p := successParameters{CleanedBody: cleaned}
+// 	data, _ := json.Marshal(p)
+// 	w.Header().Set("Content-Type", "application/json")
+// 	w.WriteHeader(http.StatusOK)
+// 	w.Write(data)
+// }
 
 func cleanProfanity(body string) string {
 	badWords := []string{"kerfuffle", "sharbert", "fornax"}
